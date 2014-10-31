@@ -1,0 +1,168 @@
+﻿using System;
+using System.Collections;
+using System.Configuration;
+using System.Data;
+using System.Linq;
+using System.Web;
+using System.Web.Security;
+using System.Web.UI;
+using System.Web.UI.HtmlControls;
+using System.Web.UI.WebControls;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.Linq;
+using System.Data.SqlClient;
+using System.Data.OleDb;
+
+namespace WebApplication1
+{
+    public partial class _Default : System.Web.UI.Page
+    {
+        string strConn = ConfigurationManager.ConnectionStrings["connectionString"].ToString(); //链接SQL数据库
+
+        public DataSet ExecleDs(string filenameurl, string table)
+        {
+            string strConn = "Provider=Microsoft.ACE.OLEDB.12.0;" + "data source=" + filenameurl + ";Extended Properties='Excel 12.0 Xml;HDR=YES'";
+            //string strConn = "Provider=Microsoft.Jet.OleDb.4.0;" + "data source=" + filenameurl + ";Extended Properties='Excel 8.0; HDR=YES; IMEX=1'";
+            OleDbConnection conn = new OleDbConnection(strConn);
+            conn.Open();
+            DataSet ds = new DataSet();
+            OleDbDataAdapter odda = new OleDbDataAdapter("select * from [Sheet1$]", conn);
+            odda.Fill(ds, table);
+            return ds;
+        }
+
+        protected void Button1_Click(object sender, EventArgs e)
+        {
+            if (FileUpload1.HasFile == false)//HasFile用来检查FileUpload是否有指定文件
+            {
+                Response.Write("<script>alert('Please select Excel files!')</script> ");
+                return;//当无文件时,返回
+            }
+            string IsXls = System.IO.Path.GetExtension(FileUpload1.FileName).ToString().ToLower();//System.IO.Path.GetExtension获得文件的扩展名
+            if (IsXls != ".xls"&& IsXls != ".xlsx")
+            {
+                Response.Write("<script>alert('只可以选择Excel文件')</script>");
+                return;//当选择的不是Excel文件时,返回
+            }
+            try
+            {
+                SqlConnection cn = new SqlConnection(strConn);
+                cn.Open();
+                string filename = DateTime.Now.ToString("yyyymmddhhMMss") + FileUpload1.FileName;              //获取Execle文件名  DateTime日期函数
+                string savePath = Server.MapPath(("~\\upfiles\\") + filename);//Server.MapPath 获得虚拟服务器相对路径
+                FileUpload1.SaveAs(savePath);                        //SaveAs 将上传的文件内容保存在服务器上
+                DataSet ds = ExecleDs(savePath, filename);           //调用自定义方法
+                DataRow[] rowArray = ds.Tables[0].Select();            //定义一个DataRow数组
+                int rowsnum = ds.Tables[0].Rows.Count;
+                if (rowsnum == 0)
+                {
+                    Response.Write("<script>alert('这个Excel文档是空的!')</script>");   //当Excel表为空时,对用户进行提示
+                }
+                else
+                {
+                    for (int i = 0; i < rowArray.Length; i++) {
+                        string taobaourl = string.Empty;
+                        string taobaostorecode = string.Empty;
+                        string storetype = string.Empty;
+                        string storerange = string.Empty;
+                        string storearea = string.Empty;
+                        string wangwang = string.Empty;
+                        string goodrate = string.Empty;
+                        string solddegree = string.Empty;
+                        string descriptionrate = string.Empty;
+                        string descriptionlevel = string.Empty;
+                        string autitude = string.Empty;
+                        string autitudelevel = string.Empty;
+                        string shipspeed = string.Empty;
+                        string shiplevel = string.Empty;
+                        string mongoodrate = string.Empty;
+                        string monmiddlerate = string.Empty;
+                        string monbadrate = string.Empty;
+                        string yeargoodrate = string.Empty;
+                        string yearmiddlerate = string.Empty;
+                        string yearbadrate = string.Empty;
+                        if (ds.Tables[0].Columns.Contains("淘宝URL")) {
+                            taobaourl = rowArray[i]["淘宝URL"].ToString();
+                        }//comp_storeurl
+                        if (ds.Tables[0].Columns.Contains("淘宝店铺编号")) {
+                            taobaostorecode = rowArray[i]["淘宝店铺编号"].ToString();
+                        }//comp_storeid
+                        if (ds.Tables[0].Columns.Contains("店铺类型")) {
+                            storetype = rowArray[i]["店铺类型"].ToString();
+                        }//comp_storetype
+                        if (ds.Tables[0].Columns.Contains("经营范围")) {
+                            storerange = rowArray[i]["经营范围"].ToString();
+                        }//comp_businessarea
+                        if (ds.Tables[0].Columns.Contains("地区")) {
+                            storearea = rowArray[i]["地区"].ToString();
+                        } //comp_region
+                        if (ds.Tables[0].Columns.Contains("淘宝旺旺")) {
+                            wangwang = rowArray[i]["淘宝旺旺"].ToString();
+                        } //comp_wangwangid
+                        if (ds.Tables[0].Columns.Contains("好评率")) {
+                            goodrate = rowArray[i]["好评率"].ToString();
+                        } //comp_reputablerate
+                        if (ds.Tables[0].Columns.Contains("卖家等级")) {
+                            solddegree = rowArray[i]["卖家等级"].ToString();
+                        }//comp_ownerlevel
+                        if (ds.Tables[0].Columns.Contains("商品与描述相符度")) {
+                            descriptionrate = rowArray[i]["商品与描述相符度"].ToString();
+                        } //comp_discribecorrespondrate
+                        if (ds.Tables[0].Columns.Contains("商品与描述相符度同业水平")) {
+                            descriptionlevel = rowArray[i]["商品与描述相符度同业水平"].ToString();
+                        } //comp_discribecorrespondlevel
+                        if (ds.Tables[0].Columns.Contains("服务态度")) {
+                            autitude = rowArray[i]["服务态度"].ToString();
+                        } //comp_serviceattitude
+                        if (ds.Tables[0].Columns.Contains("服务态度同业水平")) {
+                            autitudelevel = rowArray[i]["服务态度同业水平"].ToString();
+                        }//comp_serviceattitudelevel
+                        if (ds.Tables[0].Columns.Contains("发货速度")) {
+                            shipspeed = rowArray[i]["发货速度"].ToString();
+                        }//comp_deliverspeed
+                        if (ds.Tables[0].Columns.Contains("发货速度同业水平")) {
+                            shiplevel = rowArray[i]["发货速度同业水平"].ToString();
+                        } //comp_deliverspeedlevel
+                        if (ds.Tables[0].Columns.Contains("近一个月好评")) {
+                            mongoodrate = rowArray[i]["近一个月好评"].ToString();
+                        } //comp_amonthgood
+                        if (ds.Tables[0].Columns.Contains("近一个月中评")) {
+                            monmiddlerate = rowArray[i]["近一个月中评"].ToString();
+                        } //comp_amonthmedium
+                        if (ds.Tables[0].Columns.Contains("近一个月差评")) {
+                            monbadrate = rowArray[i]["近一个月差评"].ToString();
+                        } //comp_amonthbad
+                        if (ds.Tables[0].Columns.Contains("近半年好评")) {
+                            yeargoodrate = rowArray[i]["近半年好评"].ToString();
+                        } //comp_halfyeargood
+                        if (ds.Tables[0].Columns.Contains("近半年中评")) {
+                            yearmiddlerate = rowArray[i]["近半年中评"].ToString();
+                        }//comp_halfyearmedium
+                        if (ds.Tables[0].Columns.Contains("近半年差评")) {
+                            yearbadrate = rowArray[i]["近半年差评"].ToString();
+                        }//comp_halfyearbad
+
+
+                    }
+                    Response.Write("<br/><span><font color=red>Excel表导入成功!</font></span>");
+                }
+                cn.Close();
+            }
+            catch (Exception ex)
+            {
+                Response.Write(ex.Message);
+            }
+
+        }
+
+        protected void Button2_Click(object sender, EventArgs e)
+        {
+            string sid = Request.QueryString["SID"].ToString();
+            string adjustid = Request.QueryString["adjustid"];
+            string path=Request.Url.AbsoluteUri;
+            string root = path.Split(new string[] { "CustomPages" }, StringSplitOptions.RemoveEmptyEntries)[0];
+            string url = root+"eware.dll/Do?SID=" + sid + "&Act=432&Mode=1&CLk=T&Key0=58&Key37=" + adjustid + "&costaj_costadjustmentid=" + adjustid + "&dotnetdll=CostAdjustment&dotnetfunc=RunDataPage&Key58=" + adjustid;
+            Response.Redirect(url);
+        }
+    }
+}
